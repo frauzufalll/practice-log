@@ -1,0 +1,325 @@
+{{ define "main" }}
+
+{{/* 0) Load raw data */}}
+{{ $rawPractices := .Site.Data.practice_log }}
+{{ $sequences    := .Site.Data.sequences }}
+{{ $taxonomy     := .Site.Data.taxonomy }}
+{{/* Debug print: */}}
+<code>Loaded {{ len $rawPractices }} practices, {{ len $sequences }} sequences</code>
+
+
+{{/* 1) Initialize Scratch buckets */}}
+{{ $.Scratch.Set "missingSeq"        (slice) }}
+{{ $.Scratch.Set "missingEl"         (slice) }}
+{{ $.Scratch.Set "allNodes"          (slice) }}
+{{ $.Scratch.Set "enrichedPractices" (slice) }}
+
+{{ partial "build_ancestor_map.html" (dict
+     "nodes"   $taxonomy
+     "parents" (slice)
+     "ctx"     .
+   ) }}
+
+
+{{/* 3. pull out the flat list */}}
+{{ $allNodes := $.Scratch.Get "allNodes" }}
+<code>Found {{ len $allNodes }} total taxonomy nodes</code>
+
+{{/* 3) Enrich each practice into a new slice */}}
+{{ range $rawPractices }}
+  {{ $p := . }}
+
+  {{/* a) Resolve the sequence → elements */}}
+  {{ $seqEls := slice }}
+  {{ $seqFound := 0 }}
+  {{ with $p.sequence }}
+    {{ range $smap := $sequences }}
+      {{ if eq (index $smap "id") $p.sequence }}
+        {{ $seqEls = default (slice) (index $smap "elements") }}
+        {{ $seqFound = 1 }}
+      {{ end }}
+    {{ end }}
+    {{ if eq $seqFound 0 }}
+      {{ $.Scratch.Add "missingSeq" . }}
+    {{ end }}
+  {{ end }}
+
+  {{/* b) manual elements */}}
+  {{ $manEls := default (slice) $p.elements }}
+
+  {{/* c) combine and check validity */}}
+  {{ $resolved := slice }}
+  {{ range union $seqEls $manEls }}
+    {{ if in $allNodes . }}
+      {{ $resolved = union $resolved (slice .) }}
+    {{ else }}
+      {{ $.Scratch.Add "missingEl" . }}
+    {{ end }}
+  {{ end }}
+
+  {{/* d) find all parent categories */}}
+  {{ $parents := slice }}
+  {{ range $resolved }}
+    {{ $anc := default (slice) ($.Scratch.Get .) }}
+    {{ $parents = union $parents $anc }}
+  {{ end }}
+
+  {{/* e) build new practice dict */}}
+  {{ $ep := dict
+       "date"             $p.date
+       "url"              $p.url
+       "description"      $p.description
+       "sequence"         $p.sequence
+       "elements"         $p.elements
+       "resolvedElements" $resolved
+       "allElements"      (union $resolved $parents)
+     }}
+  {{ $.Scratch.Add "enrichedPractices" $ep }}
+{{ end }}
+
+{{ $practices := $.Scratch.Get "enrichedPractices" }}
+
+{{ if gt (len ($.Scratch.Get "missingEl")) 0 }}
+  <h3>⚠️ Missing Elements ({{ len ($.Scratch.Get "missingEl") }})</h3>
+  <ul>
+    {{ range $.Scratch.Get "missingEl" }}<li>{{ . }}</li>{{ end }}
+  </ul>
+{{ end }}
+
+{{/* 4) Display debug info */}}
+{{ if gt (len ($.Scratch.Get "missingSeq")) 0 }}
+  <h3>⚠️ Missing Sequences ({{ len ($.Scratch.Get "missingSeq") }})</h3>
+  <ul>
+    {{ range $.Scratch.Get "missingSeq" }}<li>{{ . }}</li>{{ end }}
+  </ul>
+{{ end }}
+
+<section id="practice-plots">
+  <div id="histogram-dates"></div>
+  <div id="histogram-weekdays"></div>
+  <div id="sunburst"></div>
+  <div id="elements-over-time"></div>
+</section>
+
+<script>
+// 1) Grab your enriched practice log
+const practiceData = {{ $.Scratch.Get "enrichedPractices" }};
+const taxonomy = {{ $taxonomy }};
+
+// 2) Parse dates safely
+const dates = practiceData
+  .map(d => new Date(d.date))
+  .filter(d => !isNaN(d));
+
+// 3) Weekdays
+const weekdays = dates.map(d =>
+  d.toLocaleDateString('en-US', { weekday: 'long' })
+);
+
+// 4) Flat element frequency (leaf-level)
+const elemCounts = practiceData.reduce((acc, d) => {
+  (d.resolvedElements || []).forEach(e => {
+    acc[e] = (acc[e] || 0) + 1;
+  });
+  return acc;
+}, {});
+const elems = Object.keys(elemCounts);
+const counts = elems.map(e => elemCounts[e]);
+
+// 5) Prepare allElements for scatter-over-time
+const allElements = Array.from(
+  new Set(practiceData.flatMap(d => d.allElements || []))
+);
+
+// Dark theme layout
+const darkLayout = {
+  paper_bgcolor: 'rgba(0,0,0,0)',
+  plot_bgcolor:  'rgba(0,0,0,0)',
+  font:         { color: '#fff' }
+};
+
+// 6a) Date histogram
+Plotly.newPlot('histogram-dates', [{
+  x: dates,
+  type: 'histogram',
+  autobinx: true
+}], {
+  ...darkLayout,
+  title: 'Practice Dates Histogram',
+  xaxis: { title: 'Date' },
+  yaxis: { title: 'Sessions' }
+}, { responsive: true });
+
+// 6b) Practices by Weekday
+Plotly.newPlot('histogram-weekdays', [{
+  x: weekdays,
+  type: 'histogram'
+}], {
+  ...darkLayout,
+  title: 'Practices by Weekday',
+  xaxis: {
+    title: 'Weekday',
+    categoryorder: 'array',
+    categoryarray: ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday']
+  },
+  yaxis: { title: 'Sessions' }
+}, { responsive: true });
+
+
+// 2) Flatten taxonomy into an ordered list of { name, group }
+function flattenTax(nodes, parentGroup = null) {
+  let out = [];
+  nodes.forEach(n => {
+    const group = parentGroup || n.name;
+    out.push({ name: n.name, group });
+    if (Array.isArray(n.children)) {
+      out = out.concat(flattenTax(n.children, group));
+    }
+  });
+  return out;
+}
+const flat = flattenTax(taxonomy);
+
+// 3) Which element names were actually practiced?
+const practicedSet = new Set(practiceData.flatMap(d => d.allElements || []));
+
+// 4) Build the array of practiced elements in taxonomy order
+const practicedObjs = flat.filter(o => practicedSet.has(o.name));
+const orderedElements = practicedObjs.map(o => o.name);
+
+// 5) Assign a distinct color per top‐level group
+const groups  = Array.from(new Set(practicedObjs.map(o => o.group)));
+const palette = ['#1f77b4','#ff7f0e','#2ca02c','#d62728','#9467bd',
+                 '#8c564b','#e377c2','#7f7f7f','#bcbd22','#17becf'];
+const colorMap = {};
+groups.forEach((g,i) => { colorMap[g] = palette[i % palette.length]; });
+
+// 6) Build one scatter trace per element, colored by its group
+const traces = practicedObjs.map(o => {
+  const xs = practiceData
+    .filter(d => (d.allElements||[]).includes(o.name))
+    .map(d => new Date(d.date));
+  const ys = xs.map(() => o.name);
+  return {
+    x: xs,
+    y: ys,
+    mode: 'markers',
+    type: 'scatter',
+    name: o.group,                    // grouping by legend (optional)
+    marker: { color: colorMap[o.group] }
+  };
+});
+
+// 7) Auto‐size the container height
+const perElem = 20, minH = 400;
+const height = Math.max(orderedElements.length * perElem, minH);
+document.getElementById('elements-over-time').style.height = `${height}px`;
+
+// 8) Draw the plot with reversed autorange so first item is at top
+Plotly.newPlot('elements-over-time', traces, {
+  paper_bgcolor: 'rgba(0,0,0,0)',
+  plot_bgcolor:  'rgba(0,0,0,0)',
+  font:         { color: '#fff' },
+  title:        'Element Practice Over Time',
+  showlegend:   false,
+  xaxis:        { title: 'Date', type: 'date' },
+  yaxis: {
+    title:         'Element',
+    type:          'category',
+    showgrid: false,
+    categoryorder: 'array',
+    categoryarray: orderedElements,
+    tickmode:      'array',
+    tickvals:      orderedElements,
+    ticktext:      orderedElements,
+    autorange:     'reversed',
+    automargin:    true
+  }
+}, { responsive: true });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Sunburst: “How often which elements were trained”
+// ─────────────────────────────────────────────────────────────────────────────
+
+// 1) Count only the leaf‐level occurrences
+const elementCounts = {};
+practiceData.forEach(d => {
+  (d.resolvedElements || []).forEach(el => {
+    elementCounts[el] = (elementCounts[el] || 0) + 1;
+  });
+});
+
+// 2) Build a descendant‐summing map over your taxonomy
+const countMap = {};
+function traverseCount(node) {
+  // start with its own direct count (0 if none)
+  let c = elementCounts[node.name] || 0;
+  // add all children
+  if (Array.isArray(node.children)) {
+    node.children.forEach(child => {
+      c += traverseCount(child);
+    });
+  }
+  countMap[node.name] = c;
+  return c;
+}
+taxonomy.forEach(root => traverseCount(root));
+
+// 3) Flatten only the nodes with a positive count into labels/parents/values
+const labels  = [];
+const parents = [];
+const values  = [];
+function flatten(node, parentName = "") {
+  const cnt = countMap[node.name] || 0;
+  if (cnt > 0) {
+    labels.push(node.name);
+    parents.push(parentName);
+    values.push(cnt);
+    if (Array.isArray(node.children)) {
+      node.children.forEach(child => flatten(child, node.name));
+    }
+  }
+}
+taxonomy.forEach(root => flatten(root, ""));
+
+// 4) Draw the sunburst
+Plotly.newPlot('sunburst', [{
+  type: 'sunburst',
+  labels: labels,
+  parents: parents,
+  values: values,
+  branchvalues: 'total',
+  hovertemplate: '%{label}<br>Sessions: %{value}<extra></extra>'
+}], {
+  paper_bgcolor: 'rgba(0,0,0,0)',
+  plot_bgcolor:  'rgba(0,0,0,0)',
+  font:          { color: '#fff' },
+  margin:        { l: 0, r: 0, b: 0, t: 30 },
+  title:         'Element Practice Frequency by Category'
+}, { responsive: true });
+
+
+</script>
+
+<h2>Practice by Element</h2>
+
+{{/* grab your enriched practices */}}
+{{ $practices := $.Scratch.Get "enrichedPractices" }}
+
+{{/* render the full taxonomy with practice lists */}}
+<ul class="elements">
+    {{ partial "taxonomy-practice-list.html" (dict
+       "nodes"     .Site.Data.taxonomy
+       "practices" $practices
+        "depth" 0
+     ) }}
+</ul>
+
+<h2>Sequences</h2>
+{{ partial "sequence-practice-list.html" (dict
+   "sequences" $sequences
+   "practices" $practices
+ ) }}
+
+
+{{ end }}

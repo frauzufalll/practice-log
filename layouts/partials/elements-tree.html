@@ -1,0 +1,42 @@
+{{/* layouts/partials/elements-tree.html */}}
+{{/*
+   Recursive tree of:
+     - .nodes     = slice of { name: string, children: slice }  (your taxonomy)
+     - .practices = slice of { date, url, elements (slice of strings), … }  (your logs)
+*/}}
+
+{{- $nodes     := default (slice) .nodes          -}}
+{{- $practices := default (slice) .practices      -}}
+
+<ul>
+  {{- range $node := $nodes }}
+    {{- $name     := $node.name }}
+    {{- $children := default (slice) $node.children }}
+
+    <li>
+      <strong>{{ $name }}</strong>
+
+      {{/* 1) Find any practices that mention this element */}}
+      {{- $matches := where $practices "elements" "intersect" (slice $name) }}
+      {{- if gt (len $matches) 0 }}
+        <ul>
+          {{- range $p := $matches }}
+            <li>
+              <a class="practice-link" href="#practice-{{ $p.date }}">
+                {{ $p.date }}
+              </a>
+            </li>
+          {{- end }}
+        </ul>
+      {{- end }}
+
+      {{/* 2) Recurse into children, if any */}}
+      {{- if gt (len $children) 0 }}
+        {{- partial "elements-tree.html" (dict
+            "nodes"     $children
+            "practices" $practices
+          ) -}}
+      {{- end }}
+    </li>
+  {{- end }}
+</ul>

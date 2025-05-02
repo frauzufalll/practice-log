@@ -1,0 +1,51 @@
+{{/* layouts/partials/sequence-practice-list.html */}}
+{{/*
+  Inputs (dict):
+    sequences = slice of single-key maps (your data/sequences.yaml)
+    practices = slice of enriched practice dicts
+*/}}
+
+<ul class="sequence-list elements">
+  {{- $practices := .practices -}}
+  {{- range $smap := .sequences }}
+
+      {{/* Pull name & elements via `index` */}}
+      {{ $seqName := index $smap "name" }}
+      {{ $seqID := index $smap "id" }}
+      {{ $els     := default (slice) (index $smap "elements") }}
+      <ul class="sequence-entry" id="sequence-{{ $seqID }}">
+          <li class="sequence-details">
+            <h3>{{ $seqName }}</h3>
+
+            {{- if gt (len $els) 0 }}
+              <p>
+                <strong>Elements:</strong>
+                {{ delimit $els ", " }}
+              </p>
+            {{- end }}
+          </li>
+
+          {{/* Find practices whose .sequence equals this ID */}}
+          {{- $matches := where $practices "sequence" $seqID }}
+          {{- if gt (len $matches) 0 }}
+            <ul class="practice-list">
+              {{- range $p := $matches }}
+                <li>
+                  <a class="practice-link" href="#practice-{{ $p.date }}">
+                    <div class="thumbnail tooltip"
+                         style="background-image: url('/images/{{ path.Base $p.url }}.jpg');">
+                      <span class="tooltiptext">{{ $p.description }}</span>
+                    </div>
+                    {{ $p.date }}
+                  </a>
+                </li>
+              {{- end }}
+            </ul>
+          {{- else }}
+            <p><em>No practices logged for this sequence yet.</em></p>
+          {{- end }}
+        </li>
+      </ul>
+
+  {{- end }}
+</ul>

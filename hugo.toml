@@ -1,0 +1,4 @@
+baseURL = 'https://frauzufalll.github,io/practice-log'
+languageCode = 'en-us'
+title = 'Practice log - frauzufall'
+theme = 'PaperMod'

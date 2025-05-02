@@ -1,0 +1,31 @@
+{{/* build_ancestor_map_node.html
+
+   Inputs:
+     node    = map with .name (string) and optional .children ([]NodeObj)
+     parents = slice of ancestor names
+
+   Side‐effects:
+     • Scratch “allNodes” adds node.name
+     • Scratch key=node.name → that node’s ancestor slice
+*/}}
+
+{{- $node    := .node    -}}
+{{- $parents := default (slice) .parents -}}
+{{- $name    := $node.name -}}
+
+{{- /* 1. record this node */ -}}
+{{- $.Scratch.Add "allNodes" $name }}
+{{- $.Scratch.Set $name      $parents }}
+
+{{- /* 2. new ancestor slice for children */ -}}
+{{- $newParents := union $parents (slice $name) }}
+
+{{- /* 3. recurse into any children */ -}}
+{{- with $node.children }}
+  {{- range $child := . }}
+    {{- partial "build_ancestor_map_node.html" (dict
+         "node"    $child
+         "parents" $newParents
+       ) }}
+  {{- end }}
+{{- end }}

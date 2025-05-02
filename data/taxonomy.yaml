@@ -1,0 +1,220 @@
+- name: Edge
+  children:
+  - name: Outside Edge
+    children:
+    - name: Forward Outside Edge
+    - name: Back Outside Edge
+  - name: Inside Edge
+    children:
+    - name: Back Inside Edge
+    - name: Forward Inside Edge
+  - name: Spread Eagle
+    children:
+    - name: Inside Spread Eagle
+    - name: Outside Spread Eagle
+  - name: Ina Bauer
+    children:
+    - name: Inside Ina Bauer
+    - name: Outside Ina Bauer
+  - name: Rock Overs
+- name: Turns
+  children:
+  - name: Transition
+    children:
+    - name: Heel Heel Transition
+  - name: Three Turn
+    children:
+    - name: Forward Inside Three Turn
+    - name: Forward Outside Three Turn
+    - name: Back Inside Three Turn
+    - name: Back Outside Three Turn
+  - name: Bracket
+    children:
+    - name: Forward Inside Bracket
+    - name: Forward Outside Bracket
+    - name: Back Inside Bracket
+    - name: Back Outside Bracket
+  - name: Rocker
+    children:
+    - name: Forward Inside Rocker
+    - name: Forward Outside Rocker
+    - name: Back Inside Rocker
+    - name: Back Outside Rocker
+  - name: Counter
+    children:
+    - name: Forward Inside Counter
+    - name: Forward Outside Counter
+    - name: Back Inside Counter
+    - name: Back Outside Counter
+  - name: C-Step
+    children:
+    - name: Open C-Step
+      children:
+      - name: Forward Inside to Back Inside C-Step
+      - name: Forward Outside to Back Outside C-Step
+    - name: Closed C-Step
+      children:
+      - name: Forward Inside to Back Outside C-Step
+      - name: Forward Outside to Back Inside C-Step
+  - name: S-Step
+    children:
+    - name: Forward Inside to Back Outside S-Step
+    - name: Forward Outside to Back Inside S-Step
+    - name: Back Inside to Forward Outside S-Step
+    - name: Back Outside to Forward Inside S-Step
+  - name: Marching Turns
+  - name: Traveling Turns
+    children:
+    - name: Forward Inside Traveling Turns
+    - name: Forward Outside Traveling Turns
+    - name: Back Inside Traveling Turns
+    - name: Back Outside Traveling Turns
+  - name: Loop Turn
+    children:
+    - name: Forward Inside Loop Turn
+    - name: Forward Outside Loop Turn
+    - name: Back Inside Loop Turn
+    - name: Back Outside Loop Turn
+  - name: Cluster
+- name: Jump
+  children:
+  - name: "180"
+  - name: "360"
+  - name: Two-Foot and Half Jump
+    children:
+    - name: Bunny Hop
+    - name: Waltz Jump
+    - name: Toe Stop Flip Hop
+    - name: Toe Stop Hop
+  - name: Edge Jump
+    children:
+    - name: Salchow Jump
+    - name: Loop Jump
+    - name: Axel Jump
+    - name: Walley Jump
+  - name: Toe Jumps
+    children:
+    - name: Toe Loop Jump
+    - name: Flip Jump
+    - name: Lutz Jump
+- name: Spin
+  children:
+  - name: Pivot
+    children:
+    - name: Back Crossed Pivot
+    - name: Forward Outside Pivot
+    - name: Lunge Pivot
+    - name: Heel Pivot
+    - name: Compass
+    - name: Dying Swan Compass
+    - name: Rolling Pivot
+    - name: Quarter Pivot
+    - name: Sit Pivot
+  - name: One-Foot Spin
+  - name: Two-Foot Spin
+    children:
+    - name: Heel-Toe Spin
+    - name: Toe Spin
+    - name: Corkscrew
+  - name: Toe Stop Spin
+  - name: Upright Spin
+    children:
+    - name: Inner Back Upright Spin
+    - name: Outer Back Upright Spin
+    - name: Inner Forward Upright Spin
+    - name: Outer Forward Upright Spin
+  - name: Camel Spins
+    children:
+    - name: Camel Spin
+    - name: Biellmann Spin
+  - name: Sit Spin
+    children:
+    - name: Back Knot Spin
+  - name: Flying Spins
+    children:
+    - name: Flying Camel Spin
+    - name: Flying Sit Spin
+- name: Footwork
+  children:
+  - name: Steps
+    children:
+    - name: Forward Strokes
+    - name: Strut
+    - name: Reverse Strut
+    - name: Dribbles
+    - name: Slingshots
+    - name: Crossover
+      children:
+      - name: Forward Crossover
+      - name: Back Crossover
+    - name: Chasse
+    - name: Cross Pull
+    - name: International Runs
+    - name: Forward Cross Roll
+    - name: Back Cross Roll
+    - name: Swing
+    - name: Pirouettes
+    - name: Toe Stop Walk
+    - name: Shuffling
+  - name: Spiral
+    children:
+      - name: Arrow Spiral
+  - name: Moves
+    children:
+    - name: Side Surf
+    - name: Lunge
+    - name: Shoot-the-Duck
+    - name: Coffin
+    - name: Kick
+- name: Sequences and Patterns
+  children:
+  - name: Grapevine
+  - name: Crazy Legs
+    children:
+    - name: Crazy Legs On Heels
+  - name: Downtown
+  - name: Criss-Cross
+  - name: Snake Walk
+    children:
+    - name: Reverse Snake Walk
+  - name: Moonwalk
+  - name: Lemons
+  - name: Manuals
+  - name: Toe Manuals
+  - name: X
+  - name: Slalom
+  - name: Dips
+    children:
+    - name: Forward Dips
+  - name: Noodle Legs
+  - name: Floor
+    children:
+    - name: Extensions
+    - name: Floor Twist
+- name: Style
+  children:
+  - name: Street Skating
+  - name: Flow
+  - name: Choreo
+  - name: Drill
+  - name: Sequence
+  - name: Inline Skating
+  - name: Ice Skating
+- name: Posture
+  children:
+  - name: Arms
+  - name: Body Rolls
+- name: Misc
+  children:
+  - name: First Time Skating
+  - name: Forward Skating
+  - name: Backward Skating
+  - name: Flamingo
+  - name: Falling
+  - name: Mix
+  - name: Spinner
+  - name: Off Skates
+  - name: Shoe Sitting
+  - name: Warmup
+    children:
+    - name: Leg Lift
