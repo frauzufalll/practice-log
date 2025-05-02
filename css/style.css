@@ -71,11 +71,6 @@ ul.elements, .elements ul {
     border-radius: 5px;
 }
 
-/* Tooltip container */
-.tooltip {
-  position: relative;
-}
-
 /* Tooltip text */
 .tooltip .tooltiptext {
   visibility: hidden;
@@ -84,11 +79,11 @@ ul.elements, .elements ul {
   text-align: left;
   padding: 5px;
   border-radius: 6px;
-  width: 300px;
+  width: 200px;
   /* Position the tooltip text - see examples below! */
   position: absolute;
   z-index: 1;
-  margin: 50px 0 0 50px;
+  margin: 50px 0 0 -150px;
 }
 
 /* Show the tooltip text when you mouse over the tooltip container */
