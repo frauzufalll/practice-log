@@ -131,20 +131,12 @@ const allElements = Array.from(
   new Set(practiceData.flatMap(d => d.allElements || []))
 );
 
-// Dark theme layout
-const darkLayout = {
-  paper_bgcolor: 'rgba(0,0,0,0)',
-  plot_bgcolor:  'rgba(0,0,0,0)',
-  font:         { color: '#fff' }
-};
-
 // 6a) Date histogram
 Plotly.newPlot('histogram-dates', [{
   x: dates,
   type: 'histogram',
   autobinx: true
 }], {
-  ...darkLayout,
   title: 'Practice Dates Histogram',
   xaxis: { title: 'Date' },
   yaxis: { title: 'Sessions' }
@@ -155,7 +147,6 @@ Plotly.newPlot('histogram-weekdays', [{
   x: weekdays,
   type: 'histogram'
 }], {
-  ...darkLayout,
   title: 'Practices by Weekday',
   xaxis: {
     title: 'Weekday',
@@ -217,9 +208,6 @@ document.getElementById('elements-over-time').style.height = `${height}px`;
 
 // 8) Draw the plot with reversed autorange so first item is at top
 Plotly.newPlot('elements-over-time', traces, {
-  paper_bgcolor: 'rgba(0,0,0,0)',
-  plot_bgcolor:  'rgba(0,0,0,0)',
-  font:         { color: '#fff' },
   title:        'Element Practice Over Time',
   showlegend:   false,
   xaxis:        { title: 'Date', type: 'date' },
@@ -291,9 +279,6 @@ Plotly.newPlot('sunburst', [{
   branchvalues: 'total',
   hovertemplate: '%{label}<br>Sessions: %{value}<extra></extra>'
 }], {
-  paper_bgcolor: 'rgba(0,0,0,0)',
-  plot_bgcolor:  'rgba(0,0,0,0)',
-  font:          { color: '#fff' },
   margin:        { l: 0, r: 0, b: 0, t: 30 },
   title:         'Element Practice Frequency by Category'
 }, { responsive: true });

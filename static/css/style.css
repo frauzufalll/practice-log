@@ -1,8 +1,6 @@
-:root {
-    --gap: 24px;
-    --content-gap: 20px;
-    --nav-width: 1024px;
-    --main-width: 1024px;
+.main {
+    margin: 0 auto;
+    max-width: 1024px;
 }
 
 h2 {
